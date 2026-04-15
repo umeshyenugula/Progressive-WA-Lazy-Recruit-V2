@@ -3,7 +3,7 @@
  * Local source of truth: IndexedDB
  */
 
-const API_BASE = localStorage.getItem('crm_api_base') || 'http://127.0.0.1:8000/api';
+const API_BASE = localStorage.getItem('crm_api_base') || 'https://progressive-wa-lazy-recruit-v2.onrender.com/api';
 
 function redirectToLogin() {
   const p = window.location.pathname;
