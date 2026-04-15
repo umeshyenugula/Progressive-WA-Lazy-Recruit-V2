@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Candidates — Super Admin</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+  <style>
+    /* ── Domain manager (view modal) ─────────────────────── */
+    .domain-manager { border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:var(--sp-2); }
+    .domain-row { display:flex;align-items:center;justify-content:space-between;padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--border);transition:background .15s; }
+    .domain-row:last-child { border-bottom:none; }
+    .domain-row:hover { background:var(--bg-secondary); }
+    .domain-row-left { display:flex;align-items:center;gap:var(--sp-2); }
+    .domain-dot { width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0; }
+    .add-domain-row { display:flex;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);background:var(--bg-secondary);border-top:1px solid var(--border); }
+    .add-domain-row select { flex:1;font-size:.85rem; }
+    /* ── Eval display in view modal ──────────────────────── */
+    .cand-profile { display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-4);background:var(--bg-secondary);border-radius:var(--radius);margin-bottom:var(--sp-4); }
+    .cand-profile-avatar { width:52px;height:52px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:1.2rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .cand-detail-grid { display:grid;grid-template-columns:1fr 1fr;gap:.8rem 2rem; }
+    .cand-detail-grid .full-col { grid-column:1/-1; }
+    .detail-label { font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.15rem; }
+    .detail-value { font-size:.9rem;color:var(--text); }
+    .detail-value.empty { color:var(--text-muted);font-style:italic; }
+    .domain-eval-block { border:1px solid var(--border);border-radius:var(--radius);margin-bottom:var(--sp-3);overflow:hidden; }
+    .domain-eval-header { display:flex;align-items:center;justify-content:space-between;padding:var(--sp-3) var(--sp-4);background:var(--bg-secondary);border-bottom:1px solid var(--border); }
+    .domain-eval-title { font-weight:700;font-size:.88rem; }
+    .domain-eval-body { padding:var(--sp-4); }
+    .prev-eval-card { background:var(--bg-secondary);border-radius:var(--radius-sm);padding:var(--sp-3);margin-bottom:var(--sp-2); }
+    .prev-eval-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-2); }
+    .prev-eval-admin { display:flex;align-items:center;gap:var(--sp-2);font-size:.83rem; }
+    .prev-eval-avatar { width:24px;height:24px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-weight:700;font-size:.65rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .prev-eval-score { font-weight:700;color:var(--accent);font-size:.85rem;white-space:nowrap; }
+    .prev-eval-remarks { font-size:.8rem;color:var(--text-muted);font-style:italic;border-left:3px solid var(--border);padding-left:.6rem;margin-top:.4rem;line-height:1.5; }
+    .score-bar { height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px; }
+    .score-bar-fill { height:100%;border-radius:3px;background:var(--accent); }
+    .section-divider { border:none;border-top:1px solid var(--border);margin:var(--sp-4) 0; }
+    .extra-data-table { width:100%;font-size:.8rem;border-collapse:collapse; }
+    .extra-data-table td { padding:.3rem .4rem;border-bottom:1px solid var(--border); }
+    .extra-data-table td:first-child { color:var(--text-muted);font-weight:500;width:40%; }
+    /* ── Upload tab domain picker ─────────────────────────── */
+    .upload-zone { border:2px dashed var(--border);border-radius:var(--radius);padding:var(--sp-5);text-align:center;cursor:pointer;transition:border-color .2s; }
+    .upload-zone:hover,.upload-zone.drag-over { border-color:var(--accent); }
+    .upload-zone svg { margin:0 auto var(--sp-2);display:block;opacity:.4; }
+    .domain-chip-list { display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2); }
+    .domain-chip { display:flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:20px;font-size:.78rem;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--bg-secondary);color:var(--text-muted);transition:all .15s;user-select:none; }
+    .domain-chip.selected { background:var(--accent-light);border-color:var(--accent);color:var(--accent); }
+    .domain-chip .chip-check { width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .domain-chip.selected .chip-check::after { content:'✓';font-size:.65rem;line-height:1; }
+    /* ── Add candidate form ───────────────────────────────── */
+    .form-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3); }
+    .form-grid-2 .span-2 { grid-column:1/-1; }
+    .tab-bar { display:flex;border-bottom:1px solid var(--border);margin-bottom:var(--sp-4); }
+    .tab-btn { padding:.5rem 1.2rem;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-size:.9rem;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .2s,border-color .2s; }
+    .tab-btn.active { color:var(--accent);border-bottom-color:var(--accent);font-weight:600; }
+    .modal-xl { max-width:780px; }
+    .upload-progress-modal { max-width:440px; }
+    .upload-progress-card { display:flex;flex-direction:column;gap:var(--sp-3); }
+    .upload-progress-file { display:flex;flex-direction:column;gap:.15rem;padding:var(--sp-3);border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-secondary); }
+    .upload-progress-file strong { font-size:.92rem; }
+    .upload-progress-file span { color:var(--text-muted);font-size:.8rem; }
+    .upload-progress-bar { width:100%;height:10px;border-radius:999px;background:var(--bg-secondary);overflow:hidden;border:1px solid var(--border); }
+    .upload-progress-fill { display:block;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#22c55e);transition:width .18s ease; }
+    .upload-progress-meta { display:flex;justify-content:space-between;gap:var(--sp-3);font-size:.82rem;color:var(--text-muted); }
+    .upload-progress-steps { display:grid;gap:.55rem; }
+    .upload-progress-step { display:flex;align-items:center;gap:.55rem;font-size:.84rem;color:var(--text-muted); }
+    .upload-progress-step .step-dot { width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0; }
+    .upload-progress-step.active { color:var(--text); }
+    .upload-progress-step.active .step-dot { background:var(--accent); box-shadow:0 0 0 4px rgba(59,130,246,.12); }
+    .upload-progress-step.done { color:var(--text); }
+    .upload-progress-step.done .step-dot { background:#22c55e; }
+    @media(max-width:640px){.cand-detail-grid,.form-grid-2{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="sidebar-placeholder"></div>
+
+  <header class="topbar">
+    <span class="topbar-title">All Candidates</span>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-candidate')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+          <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"/>
+        </svg>
+        Add Candidate
+      </button>
+      <button class="btn btn-success btn-sm" id="btn-shortlist">✓ Shortlist</button>
+      <button class="btn btn-danger  btn-sm" id="btn-reject">✗ Reject</button>
+      <button class="btn btn-primary btn-sm" id="btn-export">↓ Export</button>
+      <button class="btn btn-sm" id="btn-auto-shortlist" style="background:#7c3aed;color:#fff;border:1px solid #7c3aed;border-radius:var(--radius-sm);padding:.35rem .85rem;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:.35rem;">⚡ Auto-Shortlist</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div><h1>Candidates</h1><p id="candidate-count">Loading…</p></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-assign" disabled>Assign to Domain</button>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd"/>
+        </svg>
+        <input type="search" id="search-input" placeholder="Search name, email, roll no…" />
+      </div>
+      <select id="filter-domain"><option value="">All Domains</option></select>
+      <select id="filter-status">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="shortlisted">Shortlisted</option>
+        <option value="selected">Selected</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <select id="filter-branch"><option value="">All Branches</option></select>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" id="btn-clear-filters">Clear</button>
+    </div>
+
+    <div class="table-wrap" id="candidates-table">
+      <div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div>
+    </div>
+    <div id="pagination" style="margin-top:var(--sp-3);"></div>
+  </main>
+</div>
+
+<!-- ══════════════════════════ Add Candidate Modal ═══════════ -->
+<div class="modal-backdrop hidden" id="modal-add-candidate">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Add Candidate</h3>
+      <button class="modal-close" onclick="closeModal('modal-add-candidate')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="manual" onclick="switchTab('manual')">Manual Entry</button>
+        <button class="tab-btn"        data-tab="upload" onclick="switchTab('upload')">Upload Excel</button>
+      </div>
+
+      <!-- Manual tab -->
+      <div id="tab-manual">
+        <div class="form-grid-2">
+          <div class="form-group span-2">
+            <label>Full Name <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="add-name" placeholder="e.g. Rahul Sharma" />
+          </div>
+          <div class="form-group">
+            <label>Email <span style="color:var(--danger)">*</span></label>
+            <input type="email" id="add-email" placeholder="rahul@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="add-phone" placeholder="+91 98765 43210" />
+          </div>
+          <div class="form-group">
+            <label>Roll Number</label>
+            <input type="text" id="add-roll" placeholder="21PA1A0001" />
+          </div>
+          <div class="form-group">
+            <label>Branch</label>
+            <input type="text" id="add-branch" placeholder="CSE / ECE / MECH…" />
+          </div>
+          <div class="form-group">
+            <label>Section</label>
+            <input type="text" id="add-section" placeholder="A / B / C" />
+          </div>
+          <div class="form-group">
+            <label>Year</label>
+            <select id="add-year">
+              <option value="">Select year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group span-2">
+            <label>Skills</label>
+            <input type="text" id="add-skills" placeholder="Python, React, ML…" />
+          </div>
+          <div class="form-group span-2">
+            <label>Experience / Background</label>
+            <textarea id="add-experience" rows="3" placeholder="Previous projects, clubs, internships…"></textarea>
+          </div>
+          <div class="form-group span-2">
+            <label>Assign to Domain(s)</label>
+            <select id="add-domain" multiple style="min-height:80px;"></select>
+            <span class="form-hint">Hold Ctrl / Cmd to select multiple</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload tab -->
+      <div id="tab-upload" style="display:none;">
+        <!-- Domain picker — shown BEFORE the file zone so users pick domains first -->
+        <div class="form-group" style="margin-bottom:var(--sp-4);">
+          <label style="display:flex;align-items:center;gap:var(--sp-2);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="15" height="15" style="color:var(--accent)">
+              <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clip-rule="evenodd"/>
+            </svg>
+            Auto-tag all imported candidates to these domains
+          </label>
+          <p class="form-hint" style="margin-bottom:var(--sp-2);">
+            Click to select. Domains already named in the Excel column are also applied automatically.
+          </p>
+          <div class="domain-chip-list" id="upload-domain-chips">
+            <span class="muted" style="font-size:.82rem;">Loading domains…</span>
+          </div>
+        </div>
+
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+          </svg>
+          <p style="font-weight:600;margin-bottom:.25rem;">Drop Excel file here</p>
+          <p class="muted" style="font-size:.82rem;">or click to browse — .xlsx / .xls</p>
+          <p id="upload-filename" style="margin-top:.5rem;font-size:.83rem;color:var(--accent);display:none;font-weight:600;"></p>
+        </div>
+        <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none;" />
+        <div id="upload-preview" style="margin-top:var(--sp-3);"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-candidate')">Cancel</button>
+      <button class="btn btn-primary" id="btn-add-candidate">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Upload Progress ═══════════════ -->
+<div class="modal-backdrop hidden" id="modal-upload-progress">
+  <div class="modal upload-progress-modal">
+    <div class="modal-header">
+      <div>
+        <h3>Uploading Excel</h3>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;">Live import status</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-upload-progress')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-progress-card">
+        <div class="upload-progress-file">
+          <strong id="upload-progress-file-name">No file selected</strong>
+          <span id="upload-progress-file-meta">Waiting to start…</span>
+        </div>
+        <div>
+          <div class="upload-progress-bar"><span class="upload-progress-fill" id="upload-progress-fill"></span></div>
+          <div class="upload-progress-meta" style="margin-top:.45rem;">
+            <span id="upload-progress-state">Ready</span>
+            <span id="upload-progress-percent">0%</span>
+          </div>
+        </div>
+        <div class="upload-progress-steps">
+          <div class="upload-progress-step done" data-upload-step="queued"><span class="step-dot"></span><span>File queued</span></div>
+          <div class="upload-progress-step" data-upload-step="uploading"><span class="step-dot"></span><span>Uploading to server</span></div>
+          <div class="upload-progress-step" data-upload-step="processing"><span class="step-dot"></span><span>Processing rows</span></div>
+          <div class="upload-progress-step" data-upload-step="done"><span class="step-dot"></span><span>Import complete</span></div>
+        </div>
+        <div id="upload-progress-summary" style="font-size:.84rem;color:var(--text-muted);line-height:1.5;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-upload-progress')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ Bulk Assign Modal ═══════════ -->
+<div class="modal-backdrop hidden" id="modal-assign">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Assign to Domain</h3>
+      <button class="modal-close" onclick="closeModal('modal-assign')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Select Domain</label>
+        <select id="assign-domain-select"><option value="">Choose domain…</option></select>
+      </div>
+      <p class="form-hint" style="margin-top:var(--sp-3);">
+        <span id="assign-count">0</span> candidate(s) will be assigned.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-assign')">Cancel</button>
+      <button class="btn btn-primary" id="btn-confirm-assign">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ Candidate Detail Modal ═════════ -->
+<div class="modal-backdrop hidden" id="modal-candidate">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-cand-name">Candidate Details</h3>
+        <div id="modal-cand-subtitle" style="font-size:.8rem;color:var(--text-muted);margin-top:.15rem;"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-candidate')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-cand-body">
+      <div class="loading-overlay"><div class="spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+requireAuth(['superadmin']);
+mountSidebar('superadmin');
+initSidebarUser();
+highlightNav();
+
+const PAGE_SIZE = 15;
+let allCandidates = [], filteredCandidates = [], domains = [], allCriteria = [], criteriaMap = {};
+let currentPage = 1, selectedIds = new Set();
+let sortKey = 'created_at', sortDir = 'desc';
+let activeTab = 'manual';
+let viewingCandidate = null;
+  let liveRefreshTimer = null;
+  let liveRefreshInFlight = false;
+const uploadProgressEls = {
+  fileName: null,
+  fileMeta: null,
+  state: null,
+  percent: null,
+  fill: null,
+  summary: null,
+  steps: [],
+};
+
+function initUploadProgressEls() {
+  uploadProgressEls.fileName = document.getElementById('upload-progress-file-name');
+  uploadProgressEls.fileMeta = document.getElementById('upload-progress-file-meta');
+  uploadProgressEls.state = document.getElementById('upload-progress-state');
+  uploadProgressEls.percent = document.getElementById('upload-progress-percent');
+  uploadProgressEls.fill = document.getElementById('upload-progress-fill');
+  uploadProgressEls.summary = document.getElementById('upload-progress-summary');
+  uploadProgressEls.steps = [...document.querySelectorAll('[data-upload-step]')];
+}
+
+const uploadStepOrder = ['queued', 'uploading', 'processing', 'done'];
+
+function setUploadProgress(step, detail, percent, summary) {
+  const currentIndex = uploadStepOrder.indexOf(step);
+  uploadProgressEls.steps.forEach(stepEl => {
+    const stepName = stepEl.dataset.uploadStep;
+    const stepIndex = uploadStepOrder.indexOf(stepName);
+    stepEl.classList.toggle('active', stepIndex === currentIndex || (stepName === 'uploading' && step === 'processing'));
+    stepEl.classList.toggle('done', stepIndex < currentIndex || step === 'done');
+  });
+  if (detail != null) uploadProgressEls.state.textContent = detail;
+  if (percent != null) {
+    const clamped = Math.max(0, Math.min(100, percent));
+    uploadProgressEls.percent.textContent = `${clamped}%`;
+    uploadProgressEls.fill.style.width = `${clamped}%`;
+  }
+  if (summary != null) uploadProgressEls.summary.innerHTML = summary;
+}
+
+function setUploadError(message) {
+  uploadProgressEls.state.textContent = 'Upload failed';
+  uploadProgressEls.percent.textContent = '0%';
+  uploadProgressEls.fill.style.width = '0%';
+  uploadProgressEls.steps.forEach(stepEl => {
+    stepEl.classList.remove('active', 'done');
+  });
+  uploadProgressEls.summary.textContent = message || 'Unable to complete the import.';
+}
+
+function openUploadProgressModal(file, domainIds) {
+  uploadProgressEls.fileName.textContent = file?.name || 'Excel file';
+  uploadProgressEls.fileMeta.textContent = `${((file?.size || 0) / (1024 * 1024)).toFixed(2)} MB · ${domainIds.length ? `${domainIds.length} domain tag${domainIds.length > 1 ? 's' : ''}` : 'no extra domain tags'}`;
+  uploadProgressEls.summary.textContent = 'Preparing upload…';
+  uploadProgressEls.percent.textContent = '0%';
+  uploadProgressEls.fill.style.width = '0%';
+  setUploadProgress('queued', 'File queued', 0, 'Preparing upload…');
+  openModal('modal-upload-progress');
+}
+
+function getCandidateEvalDomains(candidate) {
+  const byId = new Map();
+  (candidate.candidate_domains || []).forEach(cd => {
+    byId.set(String(cd.domain_id), cd);
+  });
+
+  (candidate.evaluations || []).forEach(ev => {
+    const domainId = String(ev.domain_id || '');
+    if (!domainId || byId.has(domainId)) return;
+    const domainMeta = (domains || []).find(d => String(d.id) === domainId);
+    byId.set(domainId, {
+      domain_id: domainId,
+      domains: domainMeta ? { id: domainMeta.id, name: domainMeta.name } : null,
+      inferred_from_evaluation: true,
+    });
+  });
+
+  return [...byId.values()];
+}
+
+// ── Bootstrap ───────────────────────────────────────────────────
+async function loadData() {
+    if (liveRefreshInFlight) return;
+    liveRefreshInFlight = true;
+  try {
+    [allCandidates, domains] = await Promise.all([Candidates.list(), Domains.list()]);
+    const critArrays = await Promise.all(domains.map(d => Domains.criteria(d.id)));
+    allCriteria = critArrays.flat();
+    criteriaMap = {};
+    allCriteria.forEach(c => { criteriaMap[c.id] = c; });
+
+    populateStaticSelects();
+    populateUploadDomainChips();
+    applyFilters();
+
+      if (viewingCandidate) {
+        try {
+          const fresh = await Candidates.get(viewingCandidate.id);
+          viewingCandidate = fresh;
+          const modal = document.getElementById('modal-candidate');
+          if (modal && !modal.classList.contains('hidden')) renderCandidateModal(fresh);
+        } catch {}
+      }
+  } catch (err) { toast(err.message, 'error'); }
+    finally { liveRefreshInFlight = false; }
+  }
+
+  function startLiveRefresh() {
+    if (liveRefreshTimer) return;
+    liveRefreshTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') loadData();
+    }, 60000);
+    window.addEventListener('focus', loadData);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadData();
+    });
+}
+
+function populateStaticSelects() {
+  const filterSel  = document.getElementById('filter-domain');
+  const assignSel  = document.getElementById('assign-domain-select');
+  const addDomSel  = document.getElementById('add-domain');
+
+  filterSel.innerHTML = '<option value="">All Domains</option>';
+  assignSel.innerHTML = '<option value="">Choose domain…</option>';
+  addDomSel.innerHTML = '';
+
+  domains.forEach(d => {
+    filterSel.innerHTML += `<option value="${d.id}">${esc(d.name)}</option>`;
+    assignSel.innerHTML += `<option value="${d.id}">${esc(d.name)}</option>`;
+    addDomSel.innerHTML += `<option value="${d.id}">${esc(d.name)}</option>`;
+  });
+
+  const branches = [...new Set(allCandidates.map(c => c.branch).filter(Boolean))].sort();
+  const branchSel = document.getElementById('filter-branch');
+  branchSel.innerHTML = '<option value="">All Branches</option>';
+  branches.forEach(b => { branchSel.innerHTML += `<option value="${b}">${esc(b)}</option>`; });
+}
+
+// ── Upload domain chip picker ───────────────────────────────────
+let selectedUploadDomains = new Set();
+
+function populateUploadDomainChips() {
+  const container = document.getElementById('upload-domain-chips');
+  if (!domains.length) {
+    container.innerHTML = '<span class="muted" style="font-size:.82rem;">No domains found.</span>';
+    return;
+  }
+  container.innerHTML = domains.map(d => `
+    <div class="domain-chip" id="chip-${d.id}" onclick="toggleUploadDomain('${d.id}',this)">
+      <div class="chip-check"></div>
+      ${esc(d.name)}
+    </div>`).join('');
+}
+
+function toggleUploadDomain(id, el) {
+  if (selectedUploadDomains.has(id)) {
+    selectedUploadDomains.delete(id);
+    el.classList.remove('selected');
+  } else {
+    selectedUploadDomains.add(id);
+    el.classList.add('selected');
+  }
+}
+
+// ── Filters ─────────────────────────────────────────────────────
+function applyFilters() {
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
+  const domain = document.getElementById('filter-domain').value;
+  const status = document.getElementById('filter-status').value;
+  const branch = document.getElementById('filter-branch').value;
+
+  filteredCandidates = allCandidates.filter(c => {
+    if (search && !`${c.name} ${c.email} ${c.roll_number}`.toLowerCase().includes(search)) return false;
+    if (status && c.status !== status) return false;
+    if (branch && c.branch !== branch) return false;
+    if (domain && !(c.candidate_domains || []).some(cd => cd.domain_id === domain)) return false;
+    return true;
+  });
+
+  filteredCandidates = sortData(filteredCandidates, sortKey, sortDir);
+  currentPage = 1;
+  selectedIds.clear();
+  updateSelectionBar();
+  renderTable();
+}
+
+function updateSelectionBar() {
+  document.getElementById('btn-assign').disabled = selectedIds.size === 0;
+  document.getElementById('assign-count').textContent = selectedIds.size;
+}
+
+// ── Table ────────────────────────────────────────────────────────
+function renderTable() {
+  const el    = document.getElementById('candidates-table');
+  const pager = paginate(filteredCandidates, currentPage, PAGE_SIZE);
+
+  document.getElementById('candidate-count').textContent =
+    `${filteredCandidates.length} candidate${filteredCandidates.length !== 1 ? 's' : ''}`;
+
+  if (!pager.items.length) {
+    renderEmpty(el, 'No candidates', 'Try adjusting filters or add candidates');
+    renderPagination(document.getElementById('pagination'), { total:0,pages:0,page:1,size:PAGE_SIZE }, ()=>{});
+    return;
+  }
+
+  const rows = pager.items.map(c => {
+    const domainTags = (c.candidate_domains || [])
+      .map(cd => `<span class="badge badge-admin" style="font-size:.7rem;">${esc(cd.domains?.name || '?')}</span>`)
+      .join('') || '<span class="muted" style="font-size:.78rem;">None</span>';
+
+    const evals = c.evaluations || [];
+    const evalCount = evals.length;
+    const avgScore  = evalCount ? (evals.reduce((s,e) => s + (e.total_score||0), 0) / evalCount).toFixed(1) : null;
+
+    return `<tr class="${selectedIds.has(c.id) ? 'selected' : ''}">
+      <td><input type="checkbox" class="row-check" data-id="${c.id}"
+        ${selectedIds.has(c.id)?'checked':''}
+        onclick="toggleSelect('${c.id}',this.checked)" /></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${avatar(c.name)}</div>
+          <div>
+            <div style="font-weight:600;font-size:.88rem;">${esc(c.name)}</div>
+            <div class="muted" style="font-size:.74rem;">${esc(c.email)}</div>
+          </div>
+        </div>
+      </td>
+      <td class="muted" style="font-size:.82rem;">${esc(c.roll_number||'—')}</td>
+      <td class="muted" style="font-size:.82rem;">${esc(c.branch||'—')}${c.section?' / '+esc(c.section):''}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:3px;">${domainTags}</div></td>
+      <td>${badgeHtml(c.status)}</td>
+      <td class="muted" style="font-size:.82rem;">
+        ${evalCount ? `<span style="font-weight:600;color:var(--accent)">${avgScore} pts</span> <span class="muted">(${evalCount})</span>` : '—'}
+      </td>
+      <td class="col-actions">
+        <div class="table-actions">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="viewCandidate('${c.id}')" title="View">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+              <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41Z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th style="width:36px;"><input type="checkbox" id="select-all" onclick="toggleAll(this.checked)" /></th>
+      <th class="sortable" data-key="name">Candidate</th>
+      <th class="sortable" data-key="roll_number">Roll No</th>
+      <th class="sortable" data-key="branch" class="col-hide-mobile">Branch</th>
+      <th>Domains</th>
+      <th class="sortable" data-key="status">Status</th>
+      <th>Avg Score</th>
+      <th>Actions</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  document.getElementById('select-all').checked =
+    pager.items.length > 0 && pager.items.every(c => selectedIds.has(c.id));
+
+  el.querySelectorAll('th.sortable').forEach(th => {
+    th.style.cursor = 'pointer';
+    if (th.dataset.key === sortKey) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+    th.addEventListener('click', () => {
+      sortDir = (sortKey === th.dataset.key) ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+      sortKey = th.dataset.key;
+      applyFilters();
+    });
+  });
+
+  renderPagination(document.getElementById('pagination'), pager, p => { currentPage = p; renderTable(); });
+}
+
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateSelectionBar();
+}
+function toggleAll(checked) {
+  const pager = paginate(filteredCandidates, currentPage, PAGE_SIZE);
+  pager.items.forEach(c => { if (checked) selectedIds.add(c.id); else selectedIds.delete(c.id); });
+  renderTable(); updateSelectionBar();
+}
+
+// ── View Candidate Modal ─────────────────────────────────────────
+async function viewCandidate(id) {
+  const body = document.getElementById('modal-cand-body');
+  document.getElementById('modal-cand-name').textContent = 'Loading…';
+  document.getElementById('modal-cand-subtitle').textContent = '';
+  body.innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
+  openModal('modal-candidate');
+
+  try {
+    const c = await Candidates.get(id);
+    viewingCandidate = c;
+    renderCandidateModal(c);
+  } catch (err) {
+    body.innerHTML = `<p class="muted">${esc(err.message)}</p>`;
+  }
+}
+
+function renderCandidateModal(c) {
+  document.getElementById('modal-cand-name').textContent = c.name;
+  document.getElementById('modal-cand-subtitle').innerHTML =
+    `${badgeHtml(c.status)} <span style="margin-left:6px;color:var(--text-muted)">Added ${fmtDate(c.created_at)}</span>`;
+
+  const candDomainIds = new Set((c.candidate_domains || []).map(cd => cd.domain_id));
+  const extraEntries  = Object.entries(c.extra_data || {}).filter(([,v]) => v !== null && v !== '');
+  const evals         = c.evaluations || [];
+
+  // ── Domain manager rows
+  const domainRows = (c.candidate_domains || []).map(cd => `
+    <div class="domain-row" id="sa-drow-${cd.domain_id}">
+      <div class="domain-row-left">
+        <div class="domain-dot"></div>
+        <span style="font-size:.88rem;font-weight:500;">${esc(cd.domains?.name || cd.domain_id)}</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="color:var(--danger);font-size:.75rem;"
+        onclick="saDomainRemove('${c.id}','${cd.domain_id}',this)">Remove</button>
+    </div>`).join('') || `<div style="padding:var(--sp-3) var(--sp-4);font-size:.83rem;color:var(--text-muted);">No domains assigned yet</div>`;
+
+  const availDomains = domains.filter(d => !candDomainIds.has(d.id));
+  const addRow = availDomains.length
+    ? `<div class="add-domain-row">
+        <select id="sa-new-domain-${c.id}">
+          <option value="">Add to domain…</option>
+          ${availDomains.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="saDomainAdd('${c.id}')">Assign</button>
+      </div>`
+    : `<div class="add-domain-row" style="font-size:.8rem;color:var(--text-muted);">All domains already assigned</div>`;
+
+  // ── Evaluations by domain
+  const evalsByDomain = {};
+  evals.forEach(ev => { (evalsByDomain[ev.domain_id] = evalsByDomain[ev.domain_id] || []).push(ev); });
+
+  const evalDomains = getCandidateEvalDomains(c);
+  const evalSections = evalDomains.map(cd => {
+    const domEvals = evalsByDomain[cd.domain_id] || [];
+    const evalCards = domEvals.map(ev => {
+      const name = ev.users?.full_name || ev.users?.email || 'Admin';
+      const allScores = ev.scores || {};
+      const specialKeys = new Set(['overall_rating', 'final_general_remarks']);
+      const scoreRows = Object.entries(allScores)
+        .filter(([cid]) => !specialKeys.has(cid))
+        .map(([cid, score]) => {
+          const cr = criteriaMap[cid];
+          const numericScore = Number(score);
+          if (cr && Number.isFinite(numericScore) && Number(cr.max_score) > 0) {
+            const pct = Math.max(0, Math.min(100, Math.round((numericScore / Number(cr.max_score)) * 100)));
+            return `<div style="display:flex;align-items:center;gap:var(--sp-2);font-size:.8rem;margin-bottom:.3rem;">
+              <span style="flex:1;color:var(--text-muted);">${esc(cr.name)}</span>
+              <div style="flex:2;display:flex;align-items:center;gap:.4rem;">
+                <div class="score-bar" style="flex:1;"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+                <span style="min-width:44px;text-align:right;color:var(--text-muted);">${numericScore}/${cr.max_score}</span>
+              </div>
+            </div>`;
+          }
+          return `<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);font-size:.8rem;margin-bottom:.3rem;">
+            <span style="color:var(--text-muted);">${esc(cid)}</span>
+            <strong>${esc(score)}</strong>
+          </div>`;
+        }).join('');
+      const overallRating = allScores?.overall_rating ?? ev.total_score;
+      const overallLine = overallRating != null
+        ? `<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);font-size:.8rem;margin-bottom:.3rem;">
+            <span style="color:var(--text-muted);">Overall Rating</span>
+            <strong>${esc(overallRating)}</strong>
+          </div>`
+        : '';
+      const finalGeneralRemarks = allScores?.final_general_remarks
+        ? `<div class="prev-eval-remarks">${esc(allScores.final_general_remarks)}</div>`
+        : '';
+      return `<div class="prev-eval-card">
+        <div class="prev-eval-header">
+          <div class="prev-eval-admin">
+            <div class="prev-eval-avatar">${avatar(name)}</div>
+            <strong>${esc(name)}</strong>
+            <span class="muted" style="font-size:.74rem;">· ${fmtDate(ev.updated_at)}</span>
+          </div>
+          <div class="prev-eval-score">${ev.total_score} pts</div>
+        </div>
+        ${scoreRows || overallLine}
+        ${finalGeneralRemarks}
+        ${ev.remarks ? `<div class="prev-eval-remarks">"${esc(ev.remarks)}"</div>` : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="domain-eval-block">
+      <div class="domain-eval-header">
+        <span class="domain-eval-title">${esc(cd.domains?.name || cd.domain_id)}</span>
+        <span class="muted" style="font-size:.78rem;">${domEvals.length} eval${domEvals.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="domain-eval-body">
+        ${evalCards || `<p class="muted" style="font-size:.82rem;margin:0;">No evaluations yet.</p>`}
+      </div>
+    </div>`;
+  }).join('') || `<p class="muted">Assign this candidate to a domain first.</p>`;
+
+  document.getElementById('modal-cand-body').innerHTML = `
+    <div class="cand-profile">
+      <div class="cand-profile-avatar">${avatar(c.name)}</div>
+      <div>
+        <h4 style="margin:0 0 .2rem;">${esc(c.name)}</h4>
+        <p style="margin:0;font-size:.82rem;color:var(--text-muted);">${esc(c.email)}${c.phone ? ' · ' + esc(c.phone) : ''}</p>
+        <p style="margin:.2rem 0 0;font-size:.82rem;color:var(--text-muted);">
+          ${[c.branch, c.section ? 'Sec ' + c.section : '', c.year ? 'Year ' + c.year : ''].filter(Boolean).join(' · ')}
+        </p>
+      </div>
+    </div>
+
+    <div class="cand-detail-grid" style="margin-bottom:var(--sp-4);">
+      <div><div class="detail-label">Roll Number</div><div class="detail-value ${!c.roll_number?'empty':''}">${esc(c.roll_number||'Not provided')}</div></div>
+      <div><div class="detail-label">Status</div><div class="detail-value">${badgeHtml(c.status)}</div></div>
+      <div class="full-col"><div class="detail-label">Skills</div><div class="detail-value ${!c.skills?'empty':''}">${esc(c.skills||'Not provided')}</div></div>
+      <div class="full-col"><div class="detail-label">Experience</div><div class="detail-value ${!c.experience?'empty':''}">${esc(c.experience||'Not provided')}</div></div>
+      ${extraEntries.length ? `<div class="full-col">
+        <div class="detail-label" style="margin-bottom:.4rem">Extra Data</div>
+        <table class="extra-data-table">
+          ${extraEntries.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(String(v))}</td></tr>`).join('')}
+        </table>
+      </div>` : ''}
+    </div>
+
+    <hr class="section-divider">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-2);">
+      <h4 style="margin:0;font-size:.95rem;">Domains <span class="muted" style="font-size:.8rem;font-weight:400;">(${(c.candidate_domains||[]).length})</span></h4>
+    </div>
+    <div class="domain-manager" id="sa-domain-manager-${c.id}">
+      ${domainRows}
+      ${addRow}
+    </div>
+
+    <hr class="section-divider">
+    <div style="margin-bottom:var(--sp-3);">
+      <h4 style="margin:0;font-size:.95rem;">Evaluations by Domain</h4>
+    </div>
+    ${evalSections || `<p class="muted">No domains or saved evaluations found for this candidate.</p>`}`;
+}
+
+// ── Domain add / remove (superadmin view) ──────────────────────
+async function saDomainAdd(candidateId) {
+  const sel = document.getElementById(`sa-new-domain-${candidateId}`);
+  const domainId = sel?.value;
+  if (!domainId) { toast('Select a domain first', 'warning'); return; }
+  try {
+    await Candidates.addDomain(candidateId, domainId);
+    toast('Domain assigned', 'success');
+    const fresh = await Candidates.get(candidateId);
+    viewingCandidate = fresh;
+    renderCandidateModal(fresh);
+    refreshList();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function saDomainRemove(candidateId, domainId, btn) {
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await Candidates.removeDomain(candidateId, domainId);
+    toast('Domain removed', 'success');
+    const fresh = await Candidates.get(candidateId);
+    viewingCandidate = fresh;
+    renderCandidateModal(fresh);
+    refreshList();
+  } catch (err) {
+    toast(err.message, 'error');
+    btn.disabled = false; btn.textContent = 'Remove';
+  }
+}
+
+async function refreshList() {
+  allCandidates = await Candidates.list();
+  applyFilters();
+}
+
+// ── Tab switching ───────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-manual').style.display = tab === 'manual' ? '' : 'none';
+  document.getElementById('tab-upload').style.display = tab === 'upload' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('btn-add-candidate').textContent = tab === 'upload' ? 'Upload File' : 'Add Candidate';
+}
+
+// ── File upload drag/drop ───────────────────────────────────────
+const uploadZone = document.getElementById('upload-zone');
+const fileInput  = document.getElementById('file-input');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) setUploadFile(file);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setUploadFile(fileInput.files[0]); });
+
+function setUploadFile(file) {
+  const fnEl = document.getElementById('upload-filename');
+  fnEl.textContent = `📄 ${file.name}`;
+  fnEl.style.display = '';
+  fileInput._selectedFile = file;
+}
+
+initUploadProgressEls();
+
+// ── Add candidate button ────────────────────────────────────────
+document.getElementById('btn-add-candidate').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-add-candidate');
+
+  // ── Upload tab
+  if (activeTab === 'upload') {
+    const file = fileInput._selectedFile || fileInput.files[0];
+    if (!file) { toast('Select an Excel file first', 'warning'); return; }
+
+    // Gather selected domain IDs from chips
+    const domainIds = [...selectedUploadDomains];
+
+    closeModal('modal-add-candidate');
+    openUploadProgressModal(file, domainIds);
+    setLoading(btn, true, 'Uploading…');
+    try {
+      const result = await Upload.excel(file, domainIds, progress => {
+        if (progress?.type === 'meta' && progress?.sheet === 'Participants') {
+          uploadProgressEls.fileMeta.textContent = `${progress.total || 0} candidate row${progress.total === 1 ? '' : 's'} detected`;
+          setUploadProgress('uploading', 'Uploading file to server…', 0, 'Sending spreadsheet data…');
+        } else if (progress?.type === 'row' && progress?.sheet === 'Participants') {
+          const percent = progress.total ? Math.round((progress.index / progress.total) * 100) : null;
+          const label = progress.status === 'inserted'
+            ? `Uploaded ${progress.name}`
+            : progress.status === 'skipped'
+              ? `Skipped ${progress.name}`
+              : `Error on ${progress.name}`;
+          setUploadProgress(progress.status === 'inserted' ? 'processing' : 'uploading', label, percent, `${progress.index} / ${progress.total} rows`);
+        } else if (progress?.type === 'progress' && progress?.sheet === 'Participants') {
+          const percent = progress.total ? Math.round((progress.processed / progress.total) * 100) : null;
+          setUploadProgress('processing', 'Processing rows on the server…', percent, `${progress.processed} / ${progress.total} rows`);
+        } else if (progress?.phase === 'uploading') {
+          setUploadProgress('uploading', 'Uploading file to server…', progress.percent ?? null, 'Sending spreadsheet data…');
+        } else if (progress?.type === 'done') {
+          const inserted = Number(progress?.result?.inserted || 0);
+          const skipped = Number(progress?.result?.skipped || 0);
+          const total = Number(progress?.result?.total_rows || inserted + skipped || 0);
+          const errorCount = Number(progress?.result?.errors?.length || 0);
+          setUploadProgress('done', 'Import complete', 100, `Imported <strong>${inserted}</strong> candidate${inserted === 1 ? '' : 's'}. ${skipped ? `${skipped} skipped.` : 'No rows skipped.'}${errorCount ? ` ${errorCount} error${errorCount === 1 ? '' : 's'} reported.` : ''}`);
+        }
+      });
+      const inserted = Number(result?.inserted || 0);
+      const skipped = Number(result?.skipped || 0);
+      const total = Number(result?.total_rows || inserted + skipped || 0);
+      const errorCount = Number(result?.errors?.length || 0);
+      const domainNote = domainIds.length
+        ? ` · tagged to ${domainIds.length} domain${domainIds.length > 1 ? 's' : ''}`
+        : '';
+      setUploadProgress(
+        'done',
+        'Import complete',
+        100,
+        `Imported <strong>${inserted}</strong> candidate${inserted === 1 ? '' : 's'}${domainNote}. ${skipped ? `${skipped} skipped.` : 'No rows skipped.'}${errorCount ? ` ${errorCount} error${errorCount === 1 ? '' : 's'} reported.` : ''}`,
+      );
+      toast(`${result.inserted || 0} candidates imported${domainNote}`, 'success');
+      // Reset upload state
+      fileInput.value = ''; fileInput._selectedFile = null;
+      document.getElementById('upload-filename').style.display = 'none';
+      selectedUploadDomains.clear();
+      document.querySelectorAll('.domain-chip').forEach(c => c.classList.remove('selected'));
+      if (total > 0) await new Promise(resolve => setTimeout(resolve, 250));
+      await loadData();
+    } catch (err) {
+      setUploadError(err.message || 'Unable to complete the import.');
+      toast(err.message, 'error');
+    }
+    finally { setLoading(btn, false, 'Upload File'); }
+    return;
+  }
+
+  // ── Manual tab
+  const name  = document.getElementById('add-name').value.trim();
+  const email = document.getElementById('add-email').value.trim();
+  if (!name || !email) { toast('Name and email are required', 'warning'); return; }
+
+  const addDomSel = document.getElementById('add-domain');
+  const domainIds = [...addDomSel.selectedOptions].map(o => o.value).filter(Boolean);
+
+  setLoading(btn, true, 'Adding…');
+  try {
+    await Candidates.create({
+      name, email,
+      phone:       document.getElementById('add-phone').value.trim()      || null,
+      roll_number: document.getElementById('add-roll').value.trim()        || null,
+      branch:      document.getElementById('add-branch').value.trim()      || null,
+      section:     document.getElementById('add-section').value.trim()     || null,
+      year:        document.getElementById('add-year').value               || null,
+      skills:      document.getElementById('add-skills').value.trim()      || null,
+      experience:  document.getElementById('add-experience').value.trim()  || null,
+      domain_ids:  domainIds,
+    });
+    toast('Candidate added!', 'success');
+    closeModal('modal-add-candidate');
+    ['add-name','add-email','add-phone','add-roll','add-branch','add-section','add-skills','add-experience']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('add-year').value = '';
+    await loadData();
+  } catch (err) { toast(err.message, 'error'); }
+  finally { setLoading(btn, false, 'Add Candidate'); }
+});
+
+// ── Bulk operations ─────────────────────────────────────────────
+document.getElementById('btn-assign').addEventListener('click', () => {
+  document.getElementById('assign-count').textContent = selectedIds.size;
+  openModal('modal-assign');
+});
+
+document.getElementById('btn-confirm-assign').addEventListener('click', async () => {
+  const domainId = document.getElementById('assign-domain-select').value;
+  if (!domainId) { toast('Select a domain', 'warning'); return; }
+  const btn = document.getElementById('btn-confirm-assign');
+  setLoading(btn, true, 'Assigning…');
+  try {
+    await Candidates.assign([...selectedIds], domainId);
+    toast(`${selectedIds.size} candidate(s) assigned`, 'success');
+    closeModal('modal-assign');
+    selectedIds.clear();
+    await loadData();
+  } catch (err) { toast(err.message, 'error'); }
+  finally { setLoading(btn, false, 'Assign'); }
+});
+
+async function bulkStatus(status) {
+  if (!selectedIds.size) { toast('Select candidates first', 'warning'); return; }
+  try {
+    await Candidates.bulkStatus([...selectedIds], status);
+    toast(`${selectedIds.size} candidate(s) marked as ${status}`, 'success');
+    selectedIds.clear();
+    await loadData();
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+document.getElementById('btn-shortlist').addEventListener('click', () => bulkStatus('shortlisted'));
+document.getElementById('btn-reject').addEventListener('click', () => bulkStatus('rejected'));
+document.getElementById('btn-export').addEventListener('click', async () => {
+  try {
+    const blob = await Candidates.exportShortlisted();
+    downloadBlob(blob, 'shortlisted_candidates.xlsx');
+  } catch (err) { toast(err.message, 'error'); }
+});
+
+// ── Filter wires ────────────────────────────────────────────────
+const debouncedFilter = debounce(applyFilters, 250);
+document.getElementById('search-input').addEventListener('input', debouncedFilter);
+document.getElementById('filter-domain').addEventListener('change', applyFilters);
+document.getElementById('filter-status').addEventListener('change', applyFilters);
+document.getElementById('filter-branch').addEventListener('change', applyFilters);
+document.getElementById('btn-clear-filters').addEventListener('click', () => {
+  ['search-input','filter-domain','filter-status','filter-branch'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  applyFilters();
+});
+
+startLiveRefresh();
+loadData();
+</script>
+
+<!-- ── Auto-Shortlist Modal ─────────────────────────────────────── -->
+<div id="modal-auto-shortlist" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:680px;width:92%;">
+    <div class="modal-header">
+      <h2 class="modal-title">⚡ Auto-Shortlist Engine</h2>
+      <button class="modal-close" onclick="closeModal('modal-auto-shortlist')">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Strategy explanation card -->
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);font-size:.85rem;color:var(--text-muted);line-height:1.6;">
+        <strong style="color:var(--text);">Strategy: Normalized Per-Domain Score Ranking</strong><br>
+        Since each domain has different criteria and max scores, raw scores are converted to a
+        <b>0–100 % normalized score</b> per domain. Candidates are ranked within each domain
+        and shortlisted if they meet the threshold <em>or</em> fall within the top-N.
+        A candidate who qualifies in <b>any domain</b> is shortlisted.
+        Each candidate is evaluated by <b>exactly one admin</b> — no averaging bias.
+      </div>
+
+      <!-- Mode toggle -->
+      <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+        <label style="display:flex;align-items:center;gap:.45rem;cursor:pointer;font-size:.9rem;">
+          <input type="radio" name="as-mode" value="threshold" checked id="as-mode-threshold"> Threshold (%)
+        </label>
+        <label style="display:flex;align-items:center;gap:.45rem;cursor:pointer;font-size:.9rem;">
+          <input type="radio" name="as-mode" value="topn" id="as-mode-topn"> Top-N per domain
+        </label>
+      </div>
+
+      <div id="as-threshold-block" style="margin-bottom:var(--sp-4);">
+        <label class="form-label">Minimum normalized score to shortlist</label>
+        <div style="display:flex;align-items:center;gap:var(--sp-3);">
+          <input type="range" id="as-threshold" min="0" max="100" value="60" step="5"
+            style="flex:1;" oninput="document.getElementById('as-threshold-val').textContent=this.value+'%'">
+          <span id="as-threshold-val" style="font-weight:700;min-width:3rem;color:var(--accent);">60%</span>
+        </div>
+      </div>
+
+      <div id="as-topn-block" style="display:none;margin-bottom:var(--sp-4);">
+        <label class="form-label">Top N candidates per domain</label>
+        <input type="number" id="as-topn" class="input" min="1" value="5" style="width:6rem;">
+      </div>
+
+      <!-- Preview button -->
+      <div style="display:flex;gap:var(--sp-3);align-items:center;margin-bottom:var(--sp-4);">
+        <button class="btn btn-secondary btn-sm" id="btn-as-preview" onclick="runAutoShortlist(true)">
+          🔍 Preview
+        </button>
+        <span style="font-size:.8rem;color:var(--text-muted);">See who will be shortlisted before applying</span>
+      </div>
+
+      <!-- Preview results -->
+      <div id="as-preview-result" style="display:none;">
+        <div id="as-summary" style="font-size:.88rem;font-weight:600;margin-bottom:var(--sp-3);color:var(--text);"></div>
+        <div id="as-domain-cards" style="display:flex;flex-direction:column;gap:var(--sp-3);max-height:280px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Create accounts option (Apply-only) -->
+      <div style="margin-top:var(--sp-4);padding:var(--sp-3) var(--sp-4);background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+        <label style="display:flex;align-items:flex-start;gap:.6rem;cursor:pointer;">
+          <input type="checkbox" id="as-create-accounts" style="margin-top:3px;accent-color:#7c3aed;">
+          <span style="font-size:.85rem;line-height:1.5;">
+            <strong style="color:var(--text);">Create login accounts for shortlisted candidates</strong><br>
+            <span style="color:var(--text-muted);">
+              Generates a Supabase Auth account (email + temp password) for each shortlisted candidate
+              who doesn't already have one. Accounts are only created when you click <em>Apply Shortlist</em> — never during Preview.
+            </span>
+          </span>
+        </label>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-auto-shortlist')">Cancel</button>
+      <button class="btn btn-primary" id="btn-as-apply" onclick="runAutoShortlist(false)" style="background:#7c3aed;border-color:#7c3aed;">
+        ⚡ Apply Shortlist
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auto-Shortlist ─────────────────────────────────────────────
+document.getElementById('btn-auto-shortlist').addEventListener('click', () => {
+  document.getElementById('as-preview-result').style.display = 'none';
+  document.getElementById('as-create-accounts').checked = false;
+  openModal('modal-auto-shortlist');
+});
+
+document.querySelectorAll('input[name="as-mode"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const isTopN = document.getElementById('as-mode-topn').checked;
+    document.getElementById('as-threshold-block').style.display = isTopN ? 'none' : '';
+    document.getElementById('as-topn-block').style.display = isTopN ? '' : 'none';
+    document.getElementById('as-preview-result').style.display = 'none';
+  });
+});
+
+async function runAutoShortlist(preview) {
+  const isTopN = document.getElementById('as-mode-topn').checked;
+  const threshold = document.getElementById('as-threshold').value;
+  const topN = document.getElementById('as-topn').value;
+  const createAccounts = !preview && document.getElementById('as-create-accounts').checked;
+
+  const params = new URLSearchParams({ dry_run: preview });
+  if (isTopN) params.set('top_n', topN);
+  else params.set('threshold', threshold);
+  if (createAccounts) params.set('create_accounts', 'true');
+
+  const applyBtn = document.getElementById('btn-as-apply');
+  const previewBtn = document.getElementById('btn-as-preview');
+  const btn = preview ? previewBtn : applyBtn;
+
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = preview ? '⏳ Calculating…' : '⏳ Applying…';
+
+  try {
+    const token = getToken();
+    const res = await fetch(`/api/shortlist/auto?${params}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Auto-shortlist failed');
+    }
+    const data = await res.json();
+
+    if (preview) {
+      renderPreview(data);
+    } else {
+      let msg = `✅ ${data.shortlisted_count} candidate(s) shortlisted successfully!`;
+      if (createAccounts) {
+        msg += ` · ${data.accounts_created} login account(s) created`;
+        if (data.accounts_skipped > 0) msg += `, ${data.accounts_skipped} already existed`;
+        if (data.account_errors && data.account_errors.length > 0)
+          msg += `, ${data.account_errors.length} error(s)`;
+      }
+      toast(msg, 'success', 5000);
+      closeModal('modal-auto-shortlist');
+      await loadData();
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+function renderPreview(data) {
+  const wrap = document.getElementById('as-preview-result');
+  const summary = document.getElementById('as-summary');
+  const cards = document.getElementById('as-domain-cards');
+
+  summary.innerHTML = `Will shortlist <span style="color:#7c3aed;font-size:1.1em;">${data.shortlisted_count}</span> candidate(s) across ${data.by_domain.length} domain(s) — mode: <code>${data.mode}</code>`;
+
+  cards.innerHTML = data.by_domain.map(d => {
+    if (d.skipped) return `
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);opacity:.6;">
+        <strong>${d.domain_name}</strong> — <em>skipped: ${d.reason}</em>
+      </div>`;
+    const rows = (d.candidates || d.ranked_candidates || []).map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid var(--border);font-size:.8rem;">
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${c.name || c.candidate_id.slice(0,8)+'…'}
+          ${c.email ? `<span style="color:var(--text-muted);margin-left:.4rem;">${c.email}</span>` : ''}
+        </span>
+        <span style="margin:0 .8rem;color:var(--text-muted);white-space:nowrap;">${c.raw_score}/${c.max_possible}</span>
+        <span style="font-weight:700;color:${c.will_shortlist||c.shortlisted?'#7c3aed':'var(--text-muted)'};white-space:nowrap;">${c.normalized_pct}%</span>
+        <span style="margin-left:.5rem;font-size:.7rem;${c.will_shortlist||c.shortlisted?'color:#7c3aed;background:#ede9fe;':'color:var(--text-muted);background:var(--bg-secondary);'}padding:.1rem .4rem;border-radius:4px;white-space:nowrap;">
+          ${c.will_shortlist||c.shortlisted?'✓ Shortlist':'—'}
+        </span>
+      </div>`).join('');
+    return `
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-secondary);padding:var(--sp-2) var(--sp-4);border-bottom:1px solid var(--border);">
+          <strong style="font-size:.88rem;">${d.domain_name}</strong>
+          <span style="font-size:.78rem;color:var(--text-muted);">
+            ${d.will_shortlist ?? d.shortlisted_count} / ${d.total_evaluated} evaluated → shortlist
+            &nbsp;|&nbsp; max ${d.max_possible_score ?? d.max_possible} pts
+          </span>
+        </div>
+        <div style="padding:0 var(--sp-4);">
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);padding:.4rem 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
+            <span>Candidate</span><span>Raw</span><span>Score %</span><span>Decision</span>
+          </div>
+          ${rows}
+        </div>
+      </div>`;
+  }).join('');
+
+  wrap.style.display = '';
+}
+</script>
+
+</body>
+</html>

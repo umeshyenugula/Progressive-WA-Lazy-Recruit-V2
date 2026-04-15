@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dashboard — Super Admin</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/tables.css" />
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <div id="sidebar-placeholder"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <span class="topbar-title">Dashboard</span>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary btn-sm js-network-required" id="btn-recovery-import">Upload Recovery Excel</button>
+      <button class="btn btn-primary btn-sm js-network-required" onclick="openModal('modal-upload')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9.25 13.25a.75.75 0 0 0 1.5 0V4.636l2.955 3.129a.75.75 0 0 0 1.09-1.03l-4.25-4.5a.75.75 0 0 0-1.09 0l-4.25 4.5a.75.75 0 1 0 1.09 1.03L9.25 4.636v8.614Z"/>
+          <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/>
+        </svg>
+        Upload Excel
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Welcome back</h1>
+        <p>Overview of the recruitment pipeline</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-export">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L7.29 9.235a.75.75 0 0 0-1.08 1.04l3.25 3.5a.75.75 0 0 0 1.08 0l3.25-3.5a.75.75 0 1 0-1.08-1.04l-1.96 2.129V2.75Z"/>
+            <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/>
+          </svg>
+          Export Shortlisted
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon indigo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z"/></svg>
+        </div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total Candidates</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="stat-value" id="stat-selected">—</div>
+        <div class="stat-label">Selected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="stat-value" id="stat-rejected">—</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.661 2.237a.531.531 0 0 1 .678 0 11.947 11.947 0 0 0 7.078 2.749.5.5 0 0 1 .479.425c.069.52.104 1.05.104 1.589 0 5.162-3.26 9.563-7.834 11.256a.48.48 0 0 1-.332 0C5.26 16.564 2 12.163 2 7c0-.538.035-1.069.104-1.589a.5.5 0 0 1 .48-.425 11.947 11.947 0 0 0 7.077-2.749Z" clip-rule="evenodd"/></svg>
+        </div>
+        <div class="stat-value" id="stat-admins">—</div>
+        <div class="stat-label">Active Admins</div>
+      </div>
+    </div>
+
+    <!-- Domain breakdown -->
+    <div class="card" style="margin-bottom: var(--sp-6);">
+      <div class="card-header">
+        <span class="card-title">Domain Breakdown</span>
+        <a href="domains.html" class="btn btn-ghost btn-sm">Manage →</a>
+      </div>
+      <div id="domain-breakdown">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Recent candidates -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Recent Candidates</span>
+        <a href="candidates.html" class="btn btn-ghost btn-sm">View all →</a>
+      </div>
+      <div class="table-wrap" id="recent-table">
+        <div class="loading-overlay"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-backdrop hidden" id="modal-upload">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Upload Candidate Excel</h3>
+      <button class="modal-close" onclick="closeModal('modal-upload')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-zone" id="upload-zone">
+        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12-3-3m0 0-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        </svg>
+        <h4>Drop your Excel file here</h4>
+        <p>or click to browse — .xlsx / .xls supported</p>
+        <input type="file" id="excel-input" accept=".xlsx,.xls" style="display:none" />
+      </div>
+      <div id="upload-preview" style="display:none; margin-top:var(--sp-4);"></div>
+      <div id="upload-live" style="display:none; margin-top:var(--sp-4); padding:var(--sp-4); border:1px solid var(--border); border-radius:var(--r-md); background:var(--bg-secondary);">
+        <div style="display:flex; justify-content:space-between; gap:var(--sp-3); font-size:.82rem; color:var(--text-muted); margin-bottom:.45rem;">
+          <span id="upload-live-state">Ready</span>
+          <span id="upload-live-percent">0%</span>
+        </div>
+        <div style="height:10px; background:#e5e7eb; border-radius:999px; overflow:hidden; border:1px solid var(--border);">
+          <div id="upload-live-fill" style="height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#22c55e); transition:width .18s ease;"></div>
+        </div>
+        <p id="upload-live-note" style="margin:.6rem 0 0; font-size:.84rem; color:var(--text-muted);">Ready to upload.</p>
+      </div>
+      <div id="upload-result" style="margin-top:var(--sp-4); display:none;"></div>
+      <div style="margin-top:var(--sp-5); padding:var(--sp-4); background:var(--off-white); border-radius:var(--r-md); font-size:0.8rem; color:var(--text-muted);">
+        <strong style="color:var(--text-secondary);">Flexible columns supported:</strong>
+        headers are auto-detected (for example Full Name, Email Address, Phone Number, Roll No, Dept, Domain Preference).
+        Additional columns are preserved automatically.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-upload')">Cancel</button>
+      <button class="btn btn-primary" id="btn-upload" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
+          <path d="M9.25 13.25a.75.75 0 0 0 1.5 0V4.636l2.955 3.129a.75.75 0 0 0 1.09-1.03l-4.25-4.5a.75.75 0 0 0-1.09 0l-4.25 4.5a.75.75 0 1 0 1.09 1.03L9.25 4.636v8.614Z"/>
+          <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"/>
+        </svg>
+        Upload & Import
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<input type="file" id="recovery-input" accept=".xlsx,.xls" style="display:none" />
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/sidebar.js"></script>
+<script>
+  const user = requireAuth(['superadmin']);
+  mountSidebar('superadmin');
+  initSidebarUser();
+  highlightNav();
+
+  let liveDashboardTimer = null;
+  let liveDashboardBusy = false;
+
+  let selectedFile = null;
+
+  // ── Load stats ──────────────────────────────────────────────
+  async function loadStats() {
+    if (liveDashboardBusy) return;
+    liveDashboardBusy = true;
+    try {
+      const [candidates, admins, domains] = await Promise.all([
+        Candidates.list(),
+        Admins.list(),
+        Domains.list(),
+      ]);
+
+      const byStatus = s => candidates.filter(c => c.status === s).length;
+
+      document.getElementById('stat-total').textContent    = candidates.length;
+      document.getElementById('stat-pending').textContent  = byStatus('pending');
+      document.getElementById('stat-selected').textContent = byStatus('selected');
+      document.getElementById('stat-rejected').textContent = byStatus('rejected');
+      document.getElementById('stat-admins').textContent   = admins.filter(a => a.is_active).length;
+
+      renderDomainBreakdown(domains, candidates);
+      renderRecentTable(candidates.slice(0, 8));
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      liveDashboardBusy = false;
+    }
+  }
+
+  function startLiveDashboardRefresh() {
+    if (liveDashboardTimer) return;
+    liveDashboardTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') loadStats();
+    }, 60000);
+    window.addEventListener('focus', loadStats);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') loadStats();
+    });
+  }
+
+  function renderDomainBreakdown(domains, candidates) {
+    const el = document.getElementById('domain-breakdown');
+    if (!domains.length) {
+      el.innerHTML = '<p style="padding:var(--sp-4);color:var(--text-muted);font-size:.85rem;">No domains configured yet.</p>';
+      return;
+    }
+
+    const rows = domains.map(d => {
+      const count = candidates.filter(c =>
+        (c.candidate_domains || []).some(cd => cd.domain_id === d.id)
+      ).length;
+      return `<tr>
+        <td>${esc(d.name)}</td>
+        <td class="muted">${esc(d.description || '—')}</td>
+        <td><span class="badge badge-admin">${count} candidates</span></td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Domain</th><th>Description</th><th>Candidates</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderRecentTable(candidates) {
+    const el = document.getElementById('recent-table');
+    if (!candidates.length) { renderEmpty(el, 'No candidates yet', 'Upload an Excel file to get started'); return; }
+
+    const rows = candidates.map(c => `
+      <tr>
+        <td><strong>${esc(c.name)}</strong><br><span class="muted">${esc(c.email)}</span></td>
+        <td class="muted">${esc(c.roll_number || '—')}</td>
+        <td class="muted">${esc(c.branch || '—')}</td>
+        <td>${badgeHtml(c.status)}</td>
+        <td class="muted">${fmtDate(c.created_at)}</td>
+      </tr>`).join('');
+
+    el.innerHTML = `
+      <table>
+        <thead><tr><th>Candidate</th><th>Roll No</th><th>Branch</th><th>Status</th><th>Added</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // ── Export ──────────────────────────────────────────────────
+  document.getElementById('btn-export').addEventListener('click', async () => {
+    try {
+      const blob = await Candidates.exportShortlisted();
+      downloadBlob(blob, 'shortlisted_candidates.xlsx');
+      toast('Export ready!', 'success');
+    } catch (err) { toast(err.message, 'error'); }
+  });
+
+  // ── Upload ──────────────────────────────────────────────────
+  const uploadZone  = document.getElementById('upload-zone');
+  const fileInput   = document.getElementById('excel-input');
+  const uploadBtn   = document.getElementById('btn-upload');
+  const uploadPrev  = document.getElementById('upload-preview');
+  const uploadLive  = document.getElementById('upload-live');
+  const uploadLiveState = document.getElementById('upload-live-state');
+  const uploadLivePercent = document.getElementById('upload-live-percent');
+  const uploadLiveFill = document.getElementById('upload-live-fill');
+  const uploadLiveNote = document.getElementById('upload-live-note');
+  const uploadResult= document.getElementById('upload-result');
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+  function setFile(f) {
+    selectedFile = f;
+    uploadBtn.disabled = false;
+    uploadPrev.style.display = 'flex';
+    uploadPrev.className = 'upload-preview';
+    uploadPrev.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm2 6a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm1 3a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H7Z" clip-rule="evenodd"/>
+      </svg>
+      <span>${esc(f.name)}</span>
+      <span style="color:var(--text-muted);margin-left:auto;font-size:.78rem;">${(f.size/1024).toFixed(1)} KB</span>`;
+    uploadResult.style.display = 'none';
+    uploadLive.style.display = 'none';
+  }
+
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    setLoading(uploadBtn, true, 'Uploading…');
+    uploadLive.style.display = 'block';
+    uploadLiveState.textContent = 'Uploading file';
+    uploadLivePercent.textContent = '0%';
+    uploadLiveFill.style.width = '0%';
+    uploadLiveNote.textContent = 'Sending spreadsheet to the server…';
+    try {
+      const result = await Upload.excel(selectedFile, [], progress => {
+        if (progress?.type === 'meta' && progress?.sheet === 'Participants') {
+          uploadLiveState.textContent = 'Uploading file';
+          uploadLivePercent.textContent = '0%';
+          uploadLiveFill.style.width = '0%';
+          uploadLiveNote.textContent = `${progress.total || 0} candidate row${progress.total === 1 ? '' : 's'} detected.`;
+        } else if (progress?.type === 'row' && progress?.sheet === 'Participants') {
+          const pct = progress.total ? Math.round((progress.index / progress.total) * 100) : 0;
+          uploadLiveState.textContent = progress.status === 'inserted' ? 'Importing candidate' : progress.status === 'skipped' ? 'Skipping row' : 'Row error';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = `${progress.name || 'Row'} · ${progress.index} / ${progress.total}`;
+        } else if (progress?.type === 'progress' && progress?.sheet === 'Participants') {
+          const pct = progress.total ? Math.round((progress.processed / progress.total) * 100) : 0;
+          uploadLiveState.textContent = 'Processing rows';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = `${progress.processed} / ${progress.total} rows processed.`;
+        } else if (progress?.phase === 'uploading') {
+          const pct = progress.percent ?? 0;
+          uploadLiveState.textContent = 'Uploading file';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = 'Sending spreadsheet to the server…';
+        } else if (progress?.type === 'done') {
+          uploadLiveState.textContent = 'Import complete';
+          uploadLivePercent.textContent = '100%';
+          uploadLiveFill.style.width = '100%';
+          uploadLiveNote.textContent = `Imported ${progress?.result?.inserted || 0} candidate${(progress?.result?.inserted || 0) === 1 ? '' : 's'} from ${progress?.result?.total_rows || 0} row${(progress?.result?.total_rows || 0) === 1 ? '' : 's'}.`;
+        }
+      });
+      uploadLiveState.textContent = 'Import complete';
+      uploadLivePercent.textContent = '100%';
+      uploadLiveFill.style.width = '100%';
+      uploadLiveNote.textContent = `Imported ${result.inserted || 0} candidate${(result.inserted || 0) === 1 ? '' : 's'} from ${result.total_rows || 0} row${(result.total_rows || 0) === 1 ? '' : 's'}.`;
+      uploadResult.style.display = 'block';
+      uploadResult.innerHTML = `
+        <div style="background:var(--green-bg);border:1px solid #86efac;border-radius:var(--r-md);padding:var(--sp-4);font-size:.85rem;color:var(--green);">
+          ✓ Import complete — <strong>${result.inserted}</strong> inserted, ${result.skipped} skipped out of ${result.total_rows} rows.
+          ${result.errors.length ? `<br><span style="color:var(--amber)">${result.errors.length} error(s) — check console.</span>` : ''}
+        </div>`;
+      if (result.errors.length) console.warn('Upload errors:', result.errors);
+      toast(`Imported ${result.inserted} candidates`, 'success');
+      loadStats();
+    } catch (err) {
+      uploadResult.style.display = 'block';
+      uploadResult.innerHTML = `<div style="background:var(--red-bg);border:1px solid #fca5a5;border-radius:var(--r-md);padding:var(--sp-4);font-size:.85rem;color:var(--red);">${esc(err.message)}</div>`;
+      uploadLive.style.display = 'block';
+      uploadLiveState.textContent = 'Upload failed';
+      uploadLivePercent.textContent = '0%';
+      uploadLiveFill.style.width = '0%';
+      uploadLiveNote.textContent = err.message || 'Unable to complete the import.';
+      toast(err.message, 'error');
+    }
+    setLoading(uploadBtn, false, 'Upload & Import');
+  });
+
+  // Recovery import
+  const recoveryBtn = document.getElementById('btn-recovery-import');
+  const recoveryInput = document.getElementById('recovery-input');
+  recoveryBtn.addEventListener('click', () => recoveryInput.click());
+  recoveryInput.addEventListener('change', async () => {
+    const file = recoveryInput.files?.[0];
+    if (!file) return;
+    setLoading(recoveryBtn, true, 'Importing...');
+    uploadLive.style.display = 'block';
+    uploadLiveState.textContent = 'Uploading recovery file';
+    uploadLivePercent.textContent = '0%';
+    uploadLiveFill.style.width = '0%';
+    uploadLiveNote.textContent = 'Sending recovery spreadsheet to the server…';
+    try {
+      const res = await Upload.importRecovery(file, progress => {
+        if (progress?.type === 'meta' && progress?.sheet === 'Participants') {
+          uploadLiveState.textContent = 'Uploading recovery file';
+          uploadLivePercent.textContent = '0%';
+          uploadLiveFill.style.width = '0%';
+          uploadLiveNote.textContent = `${progress.total || 0} participant row${progress.total === 1 ? '' : 's'} detected.`;
+        } else if (progress?.type === 'row' && progress?.sheet === 'Participants') {
+          const pct = progress.total ? Math.round((progress.index / progress.total) * 100) : 0;
+          uploadLiveState.textContent = progress.status === 'inserted' ? 'Restoring participant' : progress.status === 'skipped' ? 'Skipping participant row' : 'Participant row error';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = `${progress.name || 'Row'} · ${progress.index} / ${progress.total}`;
+        } else if (progress?.type === 'meta' && progress?.sheet === 'Evaluations') {
+          uploadLiveState.textContent = 'Importing evaluations';
+          uploadLiveNote.textContent = `${progress.total || 0} evaluation row${progress.total === 1 ? '' : 's'} detected.`;
+        } else if (progress?.type === 'row' && progress?.sheet === 'Evaluations') {
+          const pct = progress.total ? Math.round((progress.index / progress.total) * 100) : 0;
+          uploadLiveState.textContent = progress.status === 'inserted' ? 'Restoring evaluation' : progress.status === 'skipped' ? 'Skipping evaluation row' : 'Evaluation row error';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = `${progress.name || 'Row'} · ${progress.index} / ${progress.total}`;
+        } else if (progress?.phase === 'uploading') {
+          const pct = progress.percent ?? 0;
+          uploadLiveState.textContent = 'Uploading recovery file';
+          uploadLivePercent.textContent = `${pct}%`;
+          uploadLiveFill.style.width = `${pct}%`;
+          uploadLiveNote.textContent = 'Sending recovery spreadsheet to the server…';
+        } else if (progress?.type === 'done') {
+          uploadLiveState.textContent = 'Recovery import complete';
+          uploadLivePercent.textContent = '100%';
+          uploadLiveFill.style.width = '100%';
+          uploadLiveNote.textContent = `Recovered ${progress?.result?.successful || 0} records from ${progress?.result?.processed || 0} processed rows.`;
+        }
+      });
+      uploadLiveState.textContent = 'Recovery import complete';
+      uploadLivePercent.textContent = '100%';
+      uploadLiveFill.style.width = '100%';
+      uploadLiveNote.textContent = `Recovered ${res.successful || 0} records from ${res.processed || 0} processed rows.`;
+      toast(`Recovery import complete: ${res.successful}/${res.processed}`, 'success');
+      loadStats();
+    } catch (err) {
+      uploadLiveState.textContent = 'Recovery import failed';
+      uploadLivePercent.textContent = '0%';
+      uploadLiveFill.style.width = '0%';
+      uploadLiveNote.textContent = err.message || 'Unable to complete the recovery import.';
+      toast(err.message || 'Recovery import failed', 'error');
+    } finally {
+      setLoading(recoveryBtn, false, 'Upload Recovery Excel');
+      recoveryInput.value = '';
+    }
+  });
+
+  startLiveDashboardRefresh();
+
+  loadStats();
+</script>
+</body>
+</html>
